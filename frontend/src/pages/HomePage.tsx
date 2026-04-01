@@ -18,7 +18,7 @@ function HomePage() {
 
   const handleShorten = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/v1/shorten", {
+      const response = await fetch("https://app-shortly.onrender.com/api/v1/shorten", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
