@@ -9,16 +9,22 @@ import {
   Typography,
   Card,
   TextField,
-  Button
+  Button,
+  CircularProgress
 } from "@mui/material";
+
+
 
 function HomePage() {
   const [longUrl, setLongUrl] = useState("");
+  const [isClicked,setClicked] = useState(false) 
   const navigate = useNavigate();
 
   const handleShorten = async () => {
     try {
+      setClicked(true)
       const response = await fetch("https://app-shortly.onrender.com/api/v1/shorten", {
+      //const response = await fetch("http://localhost:5000/api/v1/shorten", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -29,7 +35,8 @@ function HomePage() {
       const data = await response.json();
       navigate("/result",{state:data});
     } catch (error) {
-      console.error("Error shortening URL:", error);
+      setClicked(false)
+      console.log("Error shortening URL:", error);
     }
   };
 
@@ -67,9 +74,12 @@ function HomePage() {
                 value={longUrl}
                 onChange={(e) => setLongUrl(e.target.value)}
               />
-              <Button variant="contained" onClick={handleShorten}>
+              <Button variant="contained" onClick={handleShorten} disabled={isClicked}>
                 Shorten URL
-              </Button>
+                {isClicked && (<Box sx={{ display: 'flex' }}>
+                  <CircularProgress aria-label="Loading…" sx={{color:'#ffffff'}}/>
+                </Box>)}
+              </Button> 
             </div>
           </Card>
         </Box>
