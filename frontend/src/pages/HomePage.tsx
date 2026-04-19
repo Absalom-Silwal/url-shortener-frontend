@@ -13,18 +13,29 @@ import {
   CircularProgress
 } from "@mui/material";
 
+function isValidUrl(str:string) {
+  try {
+    new URL(str);
+    return true;
+  } catch (e) {
+    //return false;
+    throw new Error("Url not valid");
+  }
+}
 
 
 function HomePage() {
   const [longUrl, setLongUrl] = useState("");
-  const [isClicked,setClicked] = useState(false) 
+  const [isClicked,setClicked] = useState(false); 
+  const [err,setErr] = useState('')
   const navigate = useNavigate();
 
   const handleShorten = async () => {
     try {
       setClicked(true)
-      const response = await fetch("https://app-shortly.onrender.com/api/v1/shorten", {
-      //const response = await fetch("http://localhost:5000/api/v1/shorten", {
+      isValidUrl(longUrl)
+      //const response = await fetch("https://app-shortly.onrender.com/api/v1/shorten", {
+      const response = await fetch("http://localhost:5000/api/v1/shorten", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
@@ -34,9 +45,14 @@ function HomePage() {
 
       const data = await response.json();
       navigate("/result",{state:data});
-    } catch (error) {
+    } catch (error:unknown) {
       setClicked(false)
-      console.log("Error shortening URL:", error);
+      if(error instanceof Error){
+        console.log('err',error.message)
+        setErr(error.message)
+        console.log("Error shortening URL:", error);
+      }
+      
     }
   };
 
@@ -81,8 +97,11 @@ function HomePage() {
                 </Box>)}
               </Button> 
             </div>
+            <p style={{color:"red"}}>{err}</p>
           </Card>
+          
         </Box>
+        
       </Container>
     </>
   );
