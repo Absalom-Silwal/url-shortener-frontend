@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="en" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Shortly</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['DM Sans', 'sans-serif'] }
+        }
+      }
+    }
+  </script>
+  <style>
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes pulse-dot { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
+    .fade-up { animation: fadeUp 0.4s ease forwards; }
+    .fade-up-delay { animation: fadeUp 0.4s ease 0.1s forwards; opacity: 0; }
+    .copy-flash { animation: fadeUp 0.2s ease forwards; }
+  </style>
+  <style>body { box-sizing: border-box; }</style>
+ </head>
+ <body class="h-full bg-gray-50 font-sans text-gray-800 overflow-auto">
+  <div id="app" class="h-full w-full"></div>
+  <script>
+const defaultConfig = {
+  hero_heading: "Shorten your long URLs instantly",
+  hero_subtext: "Fast, simple, and reliable — transform unwieldy links into clean, shareable URLs in one click.",
+  background_color: "#f9fafb",
+  surface_color: "#ffffff",
+  text_color: "#1f2937",
+  primary_action: "#2563eb",
+  secondary_action: "#6b7280",
+  font_family: "DM Sans",
+  font_size: 16
+};
+
+// Mock data
+const mockHistory = [
+  { id: 1, short: "sho.rt/abc123", original: "https://www.example.com/very/long/path/to/some/resource/page?query=value&other=param", clicks: 142, created: "2024-01-15" },
+  { id: 2, short: "sho.rt/xyz789", original: "https://docs.google.com/spreadsheets/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms/edit", clicks: 89, created: "2024-01-18" },
+  { id: 3, short: "sho.rt/qwe456", original: "https://github.com/user/repository/tree/main/src/components/feature", clicks: 234, created: "2024-01-20" },
+];
+
+let state = {
+  darkMode: false,
+  url: "",
+  alias: "",
+  result: null,
+  loading: false,
+  error: "",
+  copied: null,
+  activeTab: "home"
+};
+
+function render(config) {
+  const c = { ...defaultConfig, ...config };
+  const s = state;
+  const isDark = s.darkMode;
+  const bg = isDark ? "#111827" : c.background_color;
+  const surface = isDark ? "#1f2937" : c.surface_color;
+  const text = isDark ? "#f3f4f6" : c.text_color;
+  const textMuted = isDark ? "#9ca3af" : c.secondary_action;
+  const primary = c.primary_action;
+  const font = c.font_family || defaultConfig.font_family;
+  const baseSize = c.font_size || defaultConfig.font_size;
+
+  document.body.style.backgroundColor = bg;
+  document.body.style.fontFamily = `${font}, sans-serif`;
+  document.body.style.color = text;
+
+  const app = document.getElementById("app");
+  app.innerHTML = `
+    <!-- Header -->
+    <header style="background:${surface};" class="sticky top-0 z-50 shadow-sm border-b border-gray-100 ${isDark ? 'border-gray-700' : ''}">
+      <div class="max-w-5xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
+        <div class="flex items-center gap-2 cursor-pointer" onclick="setState({activeTab:'home'})">
+          <i data-lucide="link-2" style="color:${primary}; width:22px; height:22px;"></i>
+          <span style="font-size:${baseSize * 1.25}px; color:${text};" class="font-bold">Shortly</span>
+        </div>
+        <div class="flex items-center gap-3">
+          <button onclick="setState({activeTab:'home'})" style="color:${s.activeTab==='home' ? primary : textMuted}; font-size:${baseSize * 0.875}px;" class="font-medium px-3 py-1.5 rounded-lg hover:bg-gray-100 ${isDark ? 'hover:bg-gray-700' : ''} transition-colors">Home</button>
+          <button onclick="setState({activeTab:'analytics'})" style="color:${s.activeTab==='analytics' ? primary : textMuted}; font-size:${baseSize * 0.875}px;" class="font-medium px-3 py-1.5 rounded-lg hover:bg-gray-100 ${isDark ? 'hover:bg-gray-700' : ''} transition-colors">Analytics</button>
+          <button onclick="toggleDark()" style="color:${textMuted};" class="p-2 rounded-lg hover:bg-gray-100 ${isDark ? 'hover:bg-gray-700' : ''} transition-colors">
+            <i data-lucide="${isDark ? 'sun' : 'moon'}" style="width:18px; height:18px;"></i>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto px-4 sm:px-6 py-10 sm:py-16">
+      ${s.activeTab === 'home' ? renderHome(c, s, surface, text, textMuted, primary, baseSize, isDark) : renderAnalytics(c, s, surface, text, textMuted, primary, baseSize, isDark)}
+    </main>
+  `;
+  lucide.createIcons();
+}
+
+function renderHome(c, s, surface, text, textMuted, primary, baseSize, isDark) {
+  return `
+    <!-- Hero -->
+    <section class="text-center mb-12 fade-up">
+      <h1 style="font-size:${baseSize * 2.25}px; color:${text};" class="font-bold leading-tight mb-4" id="hero-heading">${c.hero_heading}</h1>
+      <p style="font-size:${baseSize * 1.1}px; color:${textMuted}; max-width:540px;" class="mx-auto leading-relaxed" id="hero-subtext">${c.hero_subtext}</p>
+    </section>
+
+    <!-- Input Form -->
+    <section class="fade-up-delay max-w-2xl mx-auto mb-10">
+      <div style="background:${surface};" class="rounded-2xl shadow-lg p-6 sm:p-8 border ${isDark ? 'border-gray-700' : 'border-gray-100'}">
+        <div class="flex flex-col sm:flex-row gap-3">
+          <input id="url-input" type="url" value="${s.url}" oninput="setState({url: this.value, error:''})"
+            placeholder="Paste your long URL here..."
+            style="font-size:${baseSize}px; background:${isDark ? '#374151' : '#f3f4f6'}; color:${text};"
+            class="flex-1 px-5 py-3.5 rounded-xl border-0 outline-none focus:ring-2 focus:ring-blue-400 transition-shadow placeholder-gray-400" />
+          <button onclick="shortenUrl()" style="background:${primary}; font-size:${baseSize}px;"
+            class="px-7 py-3.5 text-white font-semibold rounded-xl shadow-md hover:shadow-lg hover:brightness-110 active:scale-95 transition-all whitespace-nowrap disabled:opacity-60"
+            ${s.loading ? 'disabled' : ''}>
+            ${s.loading ? '<span class="inline-block w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>' : 'Shorten'}
+          </button>
+        </div>
+        <input id="alias-input" value="${s.alias}" oninput="setState({alias: this.value})"
+          placeholder="Custom alias (optional)"
+          style="font-size:${baseSize * 0.875}px; background:${isDark ? '#374151' : '#f3f4f6'}; color:${text};"
+          class="w-full mt-3 px-5 py-2.5 rounded-xl border-0 outline-none focus:ring-2 focus:ring-blue-400 transition-shadow placeholder-gray-400" />
+        ${s.error ? `<p class="mt-3 text-red-500 text-sm flex items-center gap-1.5"><i data-lucide="alert-circle" style="width:14px;height:14px;"></i>${s.error}</p>` : ''}
+      </div>
+    </section>
+
+    <!-- Result -->
+    ${s.result ? `
+    <section class="max-w-2xl mx-auto mb-12 fade-up">
+      <div style="background:${surface}; border-left: 4px solid ${primary};" class="rounded-2xl shadow-md p-6 border ${isDark ? 'border-gray-700' : 'border-gray-100'}">
+        <div class="flex items-center gap-2 mb-2">
+          <i data-lucide="check-circle" style="color:#10b981; width:20px; height:20px;"></i>
+          <span style="color:#10b981; font-size:${baseSize * 0.875}px;" class="font-semibold">URL shortened successfully!</span>
+        </div>
+        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-3 mt-3">
+          <a href="#" style="color:${primary}; font-size:${baseSize * 1.1}px;" class="font-bold hover:underline break-all">${s.result}</a>
+          <div class="flex gap-2 shrink-0">
+            <button onclick="copyToClipboard('${s.result}', 'result')" style="border-color:${primary}; color:${primary};"
+              class="px-4 py-2 rounded-lg border-2 font-medium text-sm hover:bg-blue-50 ${isDark ? 'hover:bg-blue-900/20' : ''} transition-colors flex items-center gap-1.5">
+              <i data-lucide="${s.copied === 'result' ? 'check' : 'copy'}" style="width:14px;height:14px;"></i>
+              ${s.copied === 'result' ? 'Copied!' : 'Copy'}
+            </button>
+            <button style="background:${primary};"
+              class="px-4 py-2 rounded-lg text-white font-medium text-sm hover:brightness-110 transition-all flex items-center gap-1.5">
+              <i data-lucide="external-link" style="width:14px;height:14px;"></i>Open
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>` : ''}
+
+    <!-- History -->
+    <section class="fade-up-delay">
+      <h2 style="font-size:${baseSize * 1.35}px; color:${text};" class="font-bold mb-5">Recent Links</h2>
+      ${mockHistory.length === 0 ? `
+        <div style="background:${surface};" class="rounded-2xl p-12 text-center border ${isDark ? 'border-gray-700' : 'border-gray-100'}">
+          <i data-lucide="link" style="color:${textMuted}; width:48px; height:48px; margin:0 auto 16px;"></i>
+          <p style="color:${textMuted}; font-size:${baseSize}px;">No links shortened yet. Paste a URL above to get started!</p>
+        </div>
+      ` : `
+        <div class="space-y-3">
+          ${mockHistory.map(item => `
+            <div style="background:${surface};" class="rounded-2xl p-4 sm:p-5 border ${isDark ? 'border-gray-700' : 'border-gray-100'} shadow-sm hover:shadow-md transition-shadow">
+              <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+                <div class="flex-1 min-w-0">
+                  <a href="#" style="color:${primary}; font-size:${baseSize}px;" class="font-semibold hover:underline">${item.short}</a>
+                  <p style="color:${textMuted}; font-size:${baseSize * 0.8}px;" class="truncate mt-0.5">${item.original}</p>
+                </div>
+                <div class="flex items-center gap-3 shrink-0">
+                  <span style="color:${textMuted}; font-size:${baseSize * 0.8}px;" class="flex items-center gap-1">
+                    <i data-lucide="bar-chart-2" style="width:14px;height:14px;"></i>${item.clicks}
+                  </span>
+                  <span style="color:${textMuted}; font-size:${baseSize * 0.75}px;">${item.created}</span>
+                  <button onclick="copyToClipboard('${item.short}', '${item.id}')" style="color:${primary};"
+                    class="p-2 rounded-lg hover:bg-blue-50 ${isDark ? 'hover:bg-blue-900/20' : ''} transition-colors">
+                    <i data-lucide="${s.copied === String(item.id) ? 'check' : 'copy'}" style="width:16px;height:16px;"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      `}
+    </section>
+  `;
+}
+
+function renderAnalytics(c, s, surface, text, textMuted, primary, baseSize, isDark) {
+  const stats = [
+    { label: "Total Clicks", value: "465", icon: "mouse-pointer-click", color: "#2563eb" },
+    { label: "Links Created", value: "3", icon: "link", color: "#10b981" },
+    { label: "Avg. Clicks/Link", value: "155", icon: "trending-up", color: "#f59e0b" },
+  ];
+  const chartData = [42, 65, 38, 89, 72, 95, 64];
+  const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const maxVal = Math.max(...chartData);
+
+  return `
+    <section class="fade-up">
+      <h1 style="font-size:${baseSize * 1.75}px; color:${text};" class="font-bold mb-8">Analytics</h1>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+        ${stats.map(st => `
+          <div style="background:${surface};" class="rounded-2xl p-5 border ${isDark ? 'border-gray-700' : 'border-gray-100'} shadow-sm">
+            <div class="flex items-center gap-3 mb-2">
+              <div style="background:${st.color}15;" class="w-10 h-10 rounded-xl flex items-center justify-center">
+                <i data-lucide="${st.icon}" style="color:${st.color}; width:20px; height:20px;"></i>
+              </div>
+              <span style="color:${textMuted}; font-size:${baseSize * 0.8}px;" class="font-medium">${st.label}</span>
+            </div>
+            <p style="font-size:${baseSize * 1.75}px; color:${text};" class="font-bold">${st.value}</p>
+          </div>
+        `).join('')}
+      </div>
+
+      <!-- Chart -->
+      <div style="background:${surface};" class="rounded-2xl p-6 border ${isDark ? 'border-gray-700' : 'border-gray-100'} shadow-sm">
+        <h3 style="font-size:${baseSize * 1.1}px; color:${text};" class="font-semibold mb-6">Clicks This Week</h3>
+        <div class="flex items-end justify-between gap-2 h-40">
+          ${chartData.map((val, i) => `
+            <div class="flex-1 flex flex-col items-center gap-2">
+              <div style="height:${(val / maxVal) * 100}%; background:${primary};" class="w-full max-w-[40px] rounded-lg opacity-80 hover:opacity-100 transition-opacity"></div>
+              <span style="color:${textMuted}; font-size:${baseSize * 0.7}px;">${days[i]}</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    </section>
+  `;
+}
+
+function setState(partial) {
+  state = { ...state, ...partial };
+  render(window.elementSdk?.config || defaultConfig);
+}
+
+function toggleDark() { setState({ darkMode: !state.darkMode }); }
+
+function shortenUrl() {
+  if (!state.url || !state.url.match(/^https?:\/\/.+\..+/)) {
+    setState({ error: "Please enter a valid URL (e.g. https://example.com)" });
+    return;
+  }
+  setState({ loading: true, error: "" });
+  setTimeout(() => {
+    const alias = state.alias || Math.random().toString(36).substring(2, 8);
+    setState({ loading: false, result: `sho.rt/${alias}` });
+  }, 800);
+}
+
+function copyToClipboard(text, id) {
+  navigator.clipboard.writeText(text).catch(() => {});
+  setState({ copied: String(id) });
+  setTimeout(() => setState({ copied: null }), 1500);
+}
+
+
+render(defaultConfig);
+</script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9f45eefe0259e7dd',t:'MTc3NzU0NTY4MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
