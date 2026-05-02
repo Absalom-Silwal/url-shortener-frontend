@@ -53,23 +53,6 @@ function App() {
     setLoading(true);
     setError("");
     
-    // Mock API call
-    // setTimeout(() => {
-    //   const newAlias = alias || Math.random().toString(36).substring(2, 8);
-    //   const newResult = `sho.rt/${newAlias}`;
-    //   setResult(newResult);
-    //   setLoading(false);
-      
-    //   // Update history
-    //   const newHistoryItem = {
-    //     id: Date.now(),
-    //     short: newResult,
-    //     original: url,
-    //     clicks: 0,
-    //     created: new Date().toISOString().split('T')[0]
-    //   };
-    //   setHistory([newHistoryItem, ...history]);
-    // }, 800);
 
     const response = await client.post('/shorten', {url});
     const {long_url,short_url,short_code} = response.data
