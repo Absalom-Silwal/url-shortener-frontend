@@ -12,14 +12,7 @@ const AnalyticsSection = ({ config, isDark }) => {
   const baseSize = font_size;
   const [stats,setStats] = useState([])
   const [chartData,setChartData] = useState({})
-  // const stats = [
-  //   { label: "Total Clicks", value: "465", icon: MousePointerClick, color: "#2563eb" },
-  //   { label: "Links Created", value: "3", icon: Link, color: "#10b981" },
-  //   { label: "Avg. Clicks/Link", value: "155", icon: TrendingUp, color: "#f59e0b" },
-  // ];
 
-  //const chartData = [42, 65, 38, 89, 72, 95, 64];
-  const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
  
 
   const fetchAnalytics = async()=>{
