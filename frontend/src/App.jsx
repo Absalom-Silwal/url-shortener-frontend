@@ -57,7 +57,6 @@ function App() {
     const response = await client.post('/shorten', {url});
     const {long_url,short_url,short_code} = response.data
     setResult(short_url)
-    console.log(response);  
     setLoading(false)
     };
 
@@ -114,13 +113,13 @@ function App() {
               isDark={isDark} 
             />
 
-            <HistoryList 
+            {/* <HistoryList 
               history={history} 
               copied={copied} 
               onCopy={handleCopy} 
               config={config} 
               isDark={isDark} 
-            />
+            /> */}
           </>
         ) : (
           <AnalyticsSection config={config} isDark={isDark} />
