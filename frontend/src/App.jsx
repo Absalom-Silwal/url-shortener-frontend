@@ -113,13 +113,13 @@ function App() {
               isDark={isDark} 
             />
 
-            {/* <HistoryList 
+            <HistoryList 
               history={history} 
               copied={copied} 
               onCopy={handleCopy} 
               config={config} 
               isDark={isDark} 
-            /> */}
+            />
           </>
         ) : (
           <AnalyticsSection config={config} isDark={isDark} />
