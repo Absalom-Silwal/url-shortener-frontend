@@ -24,8 +24,8 @@ const HistoryList = ({ history, copied, onCopy, config, isDark }) => {
             <div key={item.id} style={{ background: surface }} className={`rounded-2xl p-4 sm:p-5 border ${isDark ? 'border-gray-700' : 'border-gray-100'} shadow-sm hover:shadow-md transition-shadow`}>
               <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                 <div className="flex-1 min-w-0">
-                  <a href="#" style={{ color: primary, fontSize: `${baseSize}px` }} className="font-semibold hover:underline">{item.short}</a>
-                  <p style={{ color: textMuted, fontSize: `${baseSize * 0.8}px` }} className="truncate mt-0.5">{item.original}</p>
+                  <a href="#" style={{ color: primary, fontSize: `${baseSize}px` }} className="font-semibold hover:underline">{item.short_code}</a>
+                  <p style={{ color: textMuted, fontSize: `${baseSize * 0.8}px` }} className="truncate mt-0.5">{item.long_url}</p>
                 </div>
                 <div className="flex items-center gap-3 shrink-0">
                   <span style={{ color: textMuted, fontSize: `${baseSize * 0.8}px` }} className="flex items-center gap-1">

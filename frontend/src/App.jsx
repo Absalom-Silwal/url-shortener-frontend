@@ -43,6 +43,7 @@ function App() {
     const bg = isDark ? "#111827" : config.background_color;
     document.body.style.backgroundColor = bg;
     document.body.style.color = isDark ? "#f3f4f6" : config.text_color;
+    getlatestUrls(); // Fetch the latest URLs when the component mounts
   }, [isDark, config]);
 
   const handleShorten = async () => {
@@ -67,6 +68,16 @@ function App() {
   };
 
   const toggleDark = () => setDarkMode(!darkMode);
+
+  const getlatestUrls = async () => {
+    try {
+      const response = await client.get('/latest-urls');
+      console.log("Latest URLs fetched:", response.data);
+      setHistory(response.data.latestUrls || []); // Update history with fetched data
+    } catch (error) {
+      console.error("Error fetching latest URLs:", error);
+    }
+  };
 
   return (
     <div className={`min-h-full w-full ${isDark ? 'dark' : ''}`}>
