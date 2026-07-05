@@ -34,7 +34,7 @@ const HistoryList = ({ history, copied, onCopy, config, isDark }) => {
                   </span>
                   <span style={{ color: textMuted, fontSize: `${baseSize * 0.75}px` }}>{item.created}</span>
                   <button 
-                    onClick={() => onCopy(item.short, item.id)} 
+                    onClick={() => onCopy(item.short_url, item.id)} 
                     style={{ color: primary }}
                     className={`p-2 rounded-lg hover:bg-blue-50 ${isDark ? 'hover:bg-blue-900/20' : ''} transition-colors`}
                   >
